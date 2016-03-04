@@ -1,0 +1,3 @@
+12345;foo;artist;album;10;120;12345ABCD;2010;;;http://my-songs.com/12345.mp3
+67890;bar;artist;album;10;120;12345ABCD;2010;My Instruments|Guitar,My Instruments|Piano;/path/to/my/track.mp3;
+abcdef;baz;artist;album;10;120;12345ABCD;2010;;;
