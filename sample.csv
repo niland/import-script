@@ -1,3 +1,4 @@
-12345;foo;artist;album;10;120;12345ABCD;2010;;;http://my-songs.com/12345.mp3
-67890;bar;artist;album;10;120;12345ABCD;2010;My Instruments|Guitar,My Instruments|Piano;/path/to/my/track.mp3;
-abcdef;baz;artist;album;10;120;12345ABCD;2010;;;
+reference;title;artist;album;audio_path;audio_url;popularity;duration;isrc;year;tags
+REF_01_001;Billie Jean;Michael Jackson;Thriller;98;/path/to/my/file.mp3;;98;294;USSM123456789;1983;MyGenres|post-disco,MyGenres|R&B,MyGenres|funk,MyMoods|scary
+REF_12_106;Harder, Better, Faster, Stronger;Daft Punk;Discovery;84;;http://my.privateacess.com/daft_punk_harder.mp3;225;USSM987654321;2001;MyGenres|French house,OtherKeywords|crescendo
+REF_54_054;Us and Them;Pink Floyd;The Dark Side of the Moon;;/some/path/to/this/file.mp3;http://my.privateaccess.com/this-path-wont-be-used.mp3;;USSM457521;1974;MyGenres|jazz fusion,MyGenres|Progressive rock,MyMoods|trippy
