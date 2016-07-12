@@ -11,7 +11,7 @@ pip install -r requirements.txt
 Usage
 ----
 ```bash
-niland_importer.py --api-key YOUR_PERSONAL_API_KEY --csv-path FULL_PATH_TO_THE_CSV_FILE
+python niland_importer.py --api-key YOUR_PERSONAL_API_KEY --csv-path FULL_PATH_TO_THE_CSV_FILE
 ```
 
 CSV Specifications
@@ -21,23 +21,24 @@ CSV Specifications
 
 ### Columns ###
 
-|reference|title|artist|audio_path|audio_url|album|popularity|duration|isrc|year|tags|
-|-|-|-|-|-|-|-|-|-|-|
-|string*|string*|string*|Relative or absolute os path. Mandatory if no 'audio_url'|Absolute web url, Mandatory if no 'audio_path' (if both are provided, 'audio_path' is used)|string|float|float|string|int|format should be: TagCollectionName&#124;TagName,TagCollectionName&#124;TagName,...|
+|reference|title|artist|audio\_path|audio\_url|album|popularity|duration|isrc|year|tags|
+|---------|-----|------|-----------|----------|-----|----------|--------|----|----|----|
+|string\*|string\*|string\*|Relative or absolute os path. Mandatory if no audio\_url|Absolute web url, Mandatory if no audio\_path (if both are provided, audi\_path is used)|string|float|float|string|int|Format should be: TagCollectionName&#124;TagName,TagCollectionName&#124;TagName,...|
 
-Mandatory elements (*):
+Mandatory elements (\*):
 * reference
 * title
-* artist_name
+* artist
 
 You need to provide one of these elements:
-* audio_path (relative or absolute os path)
-* audio_url (absolute web url)
+* audio\_path (relative or absolute os path)
+* audio\_url (absolute web url)
 
-  You don't have to fill in both audio_path AND audio_url (if you do, the audio_path will be used).
+  You don't have to fill in both audio\_path AND audio\_url (if you do, the audio_path will be used).
 
 All other elements are optional
 
 For the element "tags":
 * You must group similar tags under a TagCollection (Instruments, tempos, Genres, etc...)
+* Try to keep your tags as consistent as possible (look for misspelling, classification errors, etc...)
 * You can then add as many tags as you want for each track following this format:   `TagCollectionName|TagName,TagCollectionName|TagName,...`
