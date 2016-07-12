@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from nilandapi.client import Client
+from pyniland.client import Client
 import urllib
 import csv
 import argparse
