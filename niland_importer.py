@@ -8,7 +8,7 @@ import argparse
 
 
 class NilandImporter(object):
-    def __init__(self, api_key, csv_path, start_line=0):
+    def __init__(self, api_key, csv_path):
         self._client = Client(api_key)
         self._tag_collections = dict()
         self._reader = csv.DictReader(open(csv_path, 'rb'), delimiter=';')
@@ -115,10 +115,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Niland Catalog Importer')
     parser.add_argument('--api-key', help='Your API key', required=True)
     parser.add_argument('--csv-path', help='Full path to the csv file', required=True)
-    parser.add_argument('--njobs', help='Number of jobs to throw', required=True)
-    parser.add_argument('--start-line', help='Line from which to start uploading', required=False, type=int)
     args = parser.parse_args()
 
-    global importer
-    importer = NilandImporter(args.api_key, args.csv_path, args.start_line)
-    importer.process(int(args.njobs))
+    importer = NilandImporter(args.api_key, args.csv_path)
+    importer.process()
