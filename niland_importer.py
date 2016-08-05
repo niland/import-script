@@ -1,64 +1,68 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from nilandapi.client import Client
+from pyniland.client import Client
 import urllib
 import csv
 import argparse
 from joblib import Parallel, delayed
 
-headers = {
-    'reference': 0,
-    'title': 1,
-    'artist_name': 2,
-    'album_name': 3,
-    'popularity': 4,
-    'duration': 5,
-    'isrc': 6,
-    'year': 7,
-    'tags': 8,
-    'audio_path': 9,
-    'audio_url': 10
-}
+normalized_headers = ['reference',
+                      'title',
+                      'artist',
+                      'album',
+                      'popularity',
+                      'duration',
+                      'isrc',
+                      'year',
+                      'tags',
+                      'audio_path',
+                      'audio_url']
 
 
 def process_one(row):
     try:
-        if len(headers) != len(row):
-            raise Exception('Malformed row. Expected %s field, having %s.' % (len(headers), len(row)))
         tag_ids = importer._handle_tags(row['tags'])
         try:
-            track = {
-                'reference': row['reference'],
-                'title': row['title'].title(),
-                'artist': row['artist_name'],
-                'album': row['album_name'],
-                'popularity': row['popularity'],
-                'duration': row['duration'],
-                'isrc': row['isrc'],
-                'year': row['year'],
-                'tags': tag_ids
-            }
+            track = dict()
+            for header in importer._headers:
+                    if header in normalized_headers:
+                        if header == 'tags':
+                            tag_ids = importer._handle_tags(row['tags'])
+                            track['tags'] = tag_ids
+                        elif 'audio' in header:
+                            pass
+                        else:
+                            track[header] = row[header]
+                    else:
+                        raise NameError('%s column name is unknown' % header)
             requ = 'tracks/reference/%s' % row['reference']
             print requ
-            existing_track = importer._client.get(requ)
+            existing_track = \
+                importer._client.get(requ,
+                                     params={'key': importer._client._api_key})
             print 'Reference %s already saved.' % (row['reference'])
-            change, track = preprocess_patch(existing_track, track)
-            if change:
-                print "Patching"
-                track = importer._client.patch('tracks/%d' % existing_track['id'], track)
-            else:
-                print "Passing"
+            # change, track = preprocess_patch(existing_track, track)
+            # if change:
+            #     print "Patching"
+            #     track = importer._client.patch('tracks/%d' % existing_track['id'], track)
+            # else:
+            #     print "Passing"
         except KeyboardInterrupt:
             raise KeyboardInterrupt()
         except:
-            if 0 != len(row['audio_path']):
-                track['audio'] = open(row['audio_path'], 'rb')
-            if 0 != len(row['audio_url']):
+            if 'audio_path' in importer._headers and 0 != len(row['audio_path']):
+                    track['audio'] = open(row['audio_path'], 'rb')
+            elif 'audio_url' in importer._headers and 0 != len(row['audio_url']):
                 track['audio'] = open(importer._download_file(row['audio_url']), 'rb')
+            else:
+                raise ValueError('You must provide an audio_path or an audio_url')
             track = importer._client.post('tracks', track)
             print 'Reference %s saved Niland ID %s' % (row['reference'], track['id'])
     except Exception as e:
+        if str(e) == "None":
+            if "http_code" in dir(e):
+                e = e.http_code
         print 'Error for "%s": %s' % (row['reference'], e)
         with open("errored.log", 'a') as f:
             f.write("%s\t%s\n" % (e, row['reference']))
@@ -105,11 +109,16 @@ class NilandImporter(object):
         self._client = Client(api_key)
         if not start_line:
             self._reader = csv.DictReader(open(csv_path, 'rb'), delimiter=';')
-            _ = self._reader.fieldnames
+            self._headers = self._reader.fieldnames
         else:
             self._reader = csv.DictReader(open(csv_path, 'rb'), delimiter=';')
+            self._headers = self._reader.fieldnames
             for k in range(start_line):
                 next(self._reader)
+        self._mandatory_headers = ['title', 'artist', 'reference']
+        for header in self._mandatory_headers:
+            if header not in self._headers:
+                raise NameError('%s is a mandatory column' % header)
         self._tag_collections = dict()
 
     def process(self, njobs):
@@ -134,7 +143,7 @@ class NilandImporter(object):
         page_count = 1
         all_existing_tracks = []
         while page <= page_count:
-            print page
+            # print page
             response = self._client.get('tracks', {'page': page, 'page_size': 1000})
             all_existing_tracks += response['data']
             page = response['page'] + 1
@@ -148,8 +157,9 @@ class NilandImporter(object):
                     process_this_one = False
             if process_this_one:
                 rows_to_process += [row]
-        Parallel(n_jobs=njobs, verbose=11)(delayed(process_one)(row) for row in rows_to_process)
-
+        print "Processing %d tracks" % len(rows_to_process)
+        Parallel(n_jobs=njobs, verbose=11)(delayed(process_one)(row) for row
+                                           in rows_to_process)
 
     def _handle_tags(self, value):
         tag_ids = []
@@ -157,25 +167,29 @@ class NilandImporter(object):
             tags = value.split(',')
             for element in tags:
                 data = element.split('|')
-                if 2 != len(data):
-                    raise ValueError('Malformed tag: "%s"' % element)
-                tc_name = data[0]
-                tag_title = data[1]
-                if tc_name not in self._tag_collections.keys():
-                    tc = self._create_tag_collection(tc_name)
-                    if tc:
-                        self._tag_collections[tc_name] = dict(tc_id=tc['id'],
-                                                              tags=dict())
-                if tc_name in self._tag_collections.keys():
-                    if tag_title not in self._tag_collections[tc_name]['tags'].keys():
-                        try:
-                            tag = self._create_tag(tc_name, tag_title)
-                        except Exception as e:
-                            print e, tc_name, tag_title
-                        self._tag_collections[tc_name]['tags'][tag_title] = tag['id']
-                    else:
-                        tag = dict(id=self._tag_collections[tc_name]['tags'][tag_title])
-                    tag_ids.append(tag['id'])
+                try:
+                    if 2 != len(data):
+                        raise ValueError('Malformed tag: "%s"' % element)
+                    tc_name = data[0]
+                    tag_title = data[1]
+                    if tc_name not in self._tag_collections.keys():
+                        tc = self._create_tag_collection(tc_name)
+                        if tc:
+                            self._tag_collections[tc_name] = dict(tc_id=tc['id'],
+                                                                  tags=dict())
+                    if tc_name in self._tag_collections.keys():
+                        if tag_title not in self._tag_collections[tc_name]['tags'].keys():
+                            try:
+                                tag = self._create_tag(tc_name, tag_title)
+                                self._tag_collections[tc_name]['tags'][tag_title] = tag['id']
+                                tag_ids.append(tag['id'])
+                            except Exception as e:
+                                print e, tc_name, tag_title
+                        else:
+                            tag = dict(id=self._tag_collections[tc_name]['tags'][tag_title])
+                            tag_ids.append(tag['id'])
+                except ValueError:
+                    pass
         return tag_ids
 
     def _create_tag_collection(self, name):
