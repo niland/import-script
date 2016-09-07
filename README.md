@@ -23,12 +23,11 @@ CSV Specifications
 
 |reference|title|artist|audio\_path|audio\_url|album|popularity|duration|isrc|year|tags|
 |---------|-----|------|-----------|----------|-----|----------|--------|----|----|----|
-|string\*|string\*|string\*|Relative or absolute os path. Mandatory if no audio\_url|Absolute web url, Mandatory if no audio\_path (if both are provided, audi\_path is used)|string|float|float|string|int|Format should be: TagCollectionName&#124;TagName,TagCollectionName&#124;TagName,...|
+|string\*|string\*|string|Relative or absolute os path. Mandatory if no audio\_url|Absolute web url, Mandatory if no audio\_path (if both are provided, audi\_path is used)|string|float|float|string|int|Format should be: TagCollectionName&#124;TagName,TagCollectionName&#124;TagName,...|
 
 Mandatory elements (\*):
 * reference
 * title
-* artist
 
 You need to provide one of these elements:
 * audio\_path (relative or absolute os path)

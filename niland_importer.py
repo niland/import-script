@@ -13,7 +13,7 @@ class NilandImporter(object):
         self._tag_collections = dict()
         self._reader = csv.DictReader(open(csv_path, 'rb'), delimiter=';')
         self._headers = self._reader.fieldnames
-        self._mandatory_headers = ['title', 'artist', 'reference']
+        self._mandatory_headers = ['title', 'reference']
         for header in self._mandatory_headers:
             if header not in self._headers:
                 raise NameError('%s is a mandatory column' % header)
